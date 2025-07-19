@@ -4,28 +4,107 @@ import path from 'path';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const root_path = process.cwd();
 
 app.use(express.json());
 
-// GET /species - list all species with their latin name and available common names
-app.get('/species', async (req, res) => {
-  try {
-    type SpeciesRow = { id: number; latin_name: string };
-    type CommonNameRow = { id: number; species_id: number; language: string; name: string };
-    type ImageRow = { id: string; species_id: number };
+type SpeciesRow = { 
+  id: number; 
+  col_id: string; 
+  latin_name: string
+};
 
+type CommonNameRow = {
+  id: number; 
+  species_col_id: string; 
+  language: string; 
+  name: string
+};
+
+type ImageRow = {
+  id: string; 
+  species_col_id: string;
+  path: string
+};
+
+
+
+app.get('/rand-img', async (req, res) =>
+{
+  console.log("/rand-img");
+  
+  console.log("10");
+
+  try {
+    const speciesResult = await query('SELECT * FROM species');
+    if(speciesResult === null || speciesResult.rowCount === null)
+    {
+      res.status(500).json({ error: 'Failed to query species' });
+      return;
+    }
+    const species: SpeciesRow[] = speciesResult.rows;
+    const rand_species_index = Math.floor(Math.random()*speciesResult.rowCount);
+    const animal = species[rand_species_index];
+    
+    const common_name_query = await query(`SELECT * FROM common_names WHERE species_col_id = \'${animal.col_id}\'`);
+    if(common_name_query === null || common_name_query.rowCount === null)
+    {
+      res.status(500).json({ error: 'Failed to query common names' });
+      return;
+    }
+    const common_names: CommonNameRow[] = common_name_query.rows.filter((n: CommonNameRow) => n.species_col_id === animal.col_id)
+    const common_name = common_names[Math.floor(Math.random()*common_name_query.rowCount)];
+
+    const images_row_query = await query(`SELECT * FROM images WHERE species_col_id = '${animal.col_id}'`);
+    if(images_row_query === null || images_row_query.rowCount === null)
+    {
+      res.status(500).json({ error: 'Failed to query image rows' });
+      return;
+    }
+    const image_rows: CommonNameRow[] = images_row_query.rows;
+    const rand_image_row = image_rows[Math.floor(Math.random()*images_row_query.rowCount)];
+    // const images: ImageRow[] = imagesResult.rows;
+
+    const data = {
+      "animal": animal,
+      "common_name": common_name,
+      "image": rand_image_row,
+    };
+    // const data = {"Query": `SELECT * FROM common_names WHERE species_col_id IS '${animal.col_id}'`};
+    // const data = {"Query": 'SELECT * FROM common_names WHERE species_col_id IS'};
+
+    res.json(data);
+  
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch species' });
+  }
+});
+
+
+// GET /species - list all species with their latin name and available common names
+app.get('/species', async (req, res) =>
+{
+  console.log("/species");
+
+  try {
     const speciesResult = await query('SELECT * FROM species');
     const species: SpeciesRow[] = speciesResult.rows;
+    
     const namesResult = await query('SELECT * FROM common_names');
     const names: CommonNameRow[] = namesResult.rows;
-    const imagesResult = await query('SELECT id, species_id FROM images');
+
+    const imagesResult = await query('SELECT id, species_col_id, path FROM images');
     const images: ImageRow[] = imagesResult.rows;
+
 
     const data = species.map((s: SpeciesRow) => ({
       id: s.id,
+      col_id: s.col_id,
       latinName: s.latin_name,
-      commonNames: names.filter((n: CommonNameRow) => n.species_id === s.id).map((n: CommonNameRow) => ({ language: n.language, name: n.name })),
-      images: images.filter((img: ImageRow) => img.species_id === s.id).map((img: ImageRow) => img.id)
+      commonNames: names.filter((n: CommonNameRow) => n.species_col_id === s.col_id)
+                        .map((n: CommonNameRow) => ({ language: n.language, name: n.name })),
+      images: images.filter((img: ImageRow) => img.species_col_id === s.col_id)
+                    .map((img: ImageRow) => ({uuid: img.id, path: img.path}))
     }));
     res.json(data);
   } catch (err) {
@@ -33,14 +112,21 @@ app.get('/species', async (req, res) => {
   }
 });
 
+
 // GET /image/:imageUuid - serve image file by UUID
-app.get('/image/:imageUuid', async (req, res) => {
+app.get('/image/:imageUuid', async (req, res) => 
+{
   try {
     const { imageUuid } = req.params;
-    const result = await query('SELECT image_path FROM images WHERE id = $1', [imageUuid]);
-    if (result.rowCount === 0) return res.status(404).json({ error: 'Image not found' });
-    const imagePath = result.rows[0].image_path;
-    res.sendFile(path.resolve(imagePath));
+
+    const result = await query('SELECT path FROM images WHERE id = $1', [imageUuid]);
+    if (result === null || result.rowCount === null || result.rowCount === 0) 
+      return res.status(404).json({ error: 'Image not found' });
+
+    const imagePath = root_path + "/" + result.rows[0].path;
+
+    res.sendFile(imagePath);
+  
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch image' });
   }

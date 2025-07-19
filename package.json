@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node-dev src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,14 +12,23 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.0.15",
     "express": "^5.1.0",
     "pg": "^8.16.3",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "tsx": "^4.20.3"
   },
   "devDependencies": {
-    "@types/pg": "^8.15.4"
-  }
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.15",
+    "@types/pg": "^8.15.4",
+    "typescript": "^5.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anders-erik/maem.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/anders-erik/maem/issues"
+  },
+  "homepage": "https://github.com/anders-erik/maem#readme"
 }

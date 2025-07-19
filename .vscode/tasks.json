@@ -1,0 +1,39 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "start",
+			"problemMatcher": [],
+			"label": "npm: start",
+			"detail": "tsx src/server.ts"
+		},
+		{
+			"type": "npm",
+			"script": "dev",
+			"problemMatcher": [],
+			"dependsOn": "build",
+			"label": "dev",
+		},
+		{
+			"type": "shell",
+			"label": "build",
+			"command": "npx tsc --project tsconfig.json",
+			"problemMatcher": [],
+		},
+		{
+			"type": "shell",
+			"label": "current-ts",
+			"command": "node dist/${relativeFileDirname}/$(basename ${file} .ts).js ",
+			"dependsOn": "build",
+			"problemMatcher": [],
+		},
+		{
+			"type": "shell",
+			"label": "run",
+			"command": "node dist/db/create_maem.js",
+			"dependsOn": "build",
+			"problemMatcher": [],
+		}
+	]
+}

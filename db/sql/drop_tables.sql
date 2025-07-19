@@ -1,0 +1,5 @@
+
+-- drop all tables
+DROP TABLE IF EXISTS common_names CASCADE;
+DROP TABLE IF EXISTS images CASCADE;
+DROP TABLE IF EXISTS species CASCADE;

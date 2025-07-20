@@ -2,37 +2,21 @@ import express from 'express';
 import { query } from '../db';
 import path from 'path';
 
+import type { SpeciesRow, CommonNameRow, ImageRow, NameToTest } from '../shared/types';
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const root_path = process.cwd();
 
 app.use(express.json());
 
-type SpeciesRow = { 
-  id: number; 
-  col_id: string; 
-  latin_name: string
-};
-
-type CommonNameRow = {
-  id: number; 
-  species_col_id: string; 
-  language: string; 
-  name: string
-};
-
-type ImageRow = {
-  id: string; 
-  species_col_id: string;
-  path: string
-};
 
 
 
 app.get('/rand-img', async (req, res) =>
 {
   console.log("/rand-img");
-  
+
   console.log("10");
 
   try {
@@ -53,6 +37,24 @@ app.get('/rand-img', async (req, res) =>
       return;
     }
     const common_names: CommonNameRow[] = common_name_query.rows.filter((n: CommonNameRow) => n.species_col_id === animal.col_id)
+    // if last_idx+1 -> latin
+    const name_to_test_idx = Math.floor(Math.random()*(common_name_query.rowCount+1));
+    var name_to_test: NameToTest;
+    if(name_to_test_idx === common_names.length)
+    {
+      name_to_test = {
+        "language": "latin",
+        "name": animal.latin_name
+      };
+    }
+    else
+    {
+      name_to_test = {
+        "language": common_names[name_to_test_idx].language,
+        "name": common_names[name_to_test_idx].name
+      };
+    }
+      
     const common_name = common_names[Math.floor(Math.random()*common_name_query.rowCount)];
 
     const images_row_query = await query(`SELECT * FROM images WHERE species_col_id = '${animal.col_id}'`);
@@ -67,7 +69,7 @@ app.get('/rand-img', async (req, res) =>
 
     const data = {
       "animal": animal,
-      "common_name": common_name,
+      "name_to_test": name_to_test,
       "image": rand_image_row,
     };
     // const data = {"Query": `SELECT * FROM common_names WHERE species_col_id IS '${animal.col_id}'`};
@@ -107,6 +109,7 @@ app.get('/species', async (req, res) =>
                     .map((img: ImageRow) => ({uuid: img.id, path: img.path}))
     }));
     res.json(data);
+  
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch species' });
   }
@@ -116,6 +119,8 @@ app.get('/species', async (req, res) =>
 // GET /image/:imageUuid - serve image file by UUID
 app.get('/image/:imageUuid', async (req, res) => 
 {
+  console.log("/image");
+
   try {
     const { imageUuid } = req.params;
 
@@ -136,6 +141,7 @@ app.get('/image/:imageUuid', async (req, res) =>
 app.get('/image/all', async (req, res) => {
   try {
     const result = await query('SELECT * FROM images');
+    res.setHeader("Content-Type", "image/png");
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch images' });

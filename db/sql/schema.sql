@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS images (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     species_col_id TEXT NOT NULL REFERENCES species(col_id) ON DELETE CASCADE,
     path TEXT NOT NULL,
+    url_found TEXT,
+    cc TEXT,
+    copyright_owner TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

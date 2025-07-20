@@ -1,0 +1,28 @@
+<html>
+
+<head></head>
+
+<body style="background-color: gray;">
+HELLO
+<img src="http://localhost:3000/image/c9929b21-d109-46f6-9a8e-9c757678e454" style="width: 100px; height: 100px;"/>
+</body>
+
+<script type="module">
+
+    const url = "http://localhost:3000/rand-img";
+    const opt = {
+        method: 'GET'
+    };
+
+    try {
+        const data = fetch(url);
+        console.log("OK");
+        
+    } catch (error){
+        console.log("ERROR");
+        
+    }
+
+</script>
+
+</html>

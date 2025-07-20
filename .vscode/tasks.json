@@ -9,11 +9,11 @@
 			"detail": "tsx src/server.ts"
 		},
 		{
-			"type": "npm",
-			"script": "dev",
+			"type": "shell",
+			"command": "npm run server-dev",
 			"problemMatcher": [],
 			"dependsOn": "build",
-			"label": "dev",
+			"label": "server-dev",
 		},
 		{
 			"type": "shell",

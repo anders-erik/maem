@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "server-dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "server:dev": "tsx watch server/server.ts",
+    "front:dev": "cd front && npm run dev"
   },
   "keywords": [],
   "author": "",

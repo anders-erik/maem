@@ -22,11 +22,38 @@ function get_species(): Species {
   };
 }
 
-export const sql_files = {
-  "schema": "./db/sql/schema.sql",
-  "data": "./db/sql/data.sql",
-  "drop_tables": "./db/sql/drop_tables.sql",
+const sql_dir = './db/sql/';
+
+export const sql_file_names: Record<string, string> = {
+  "schema":       sql_dir + "schema.sql",
+  "data":         sql_dir + "data.sql",
+  "drop_tables":  sql_dir + "drop_tables.sql",
 };
+
+var sql_sources: Record<string, string> = {};
+
+async function load_sql_files()
+{
+  for (const [key, value] of Object.entries(sql_file_names)) 
+  {
+    try
+    {
+      sql_sources[key] = await fs.readFile(value, 'utf-8');
+    }
+    catch (error)
+    {
+      console.log(`Failed to read sql file: "${sql_file_names.drop_tables}": ${error}`);
+      process.exit(1);
+    }
+  }
+
+  // console.log(`Loaded SQL files: ${Object.keys(sql_source_map).join(', ')}`);
+  // console.log(sql_sources.drop_tables);
+}
+load_sql_files().catch((error) => {
+  console.error(`Error loading SQL files: ${error}`);
+  process.exit(1);
+});
 
 class MaemDBStatic 
 {
@@ -41,9 +68,9 @@ class MaemDBStatic
   {
     var sql_source = "";
     try {
-      sql_source = await fs.readFile(sql_files.drop_tables, 'utf-8');
+      sql_source = await fs.readFile(sql_file_names.drop_tables, 'utf-8');
     } catch (error) {
-      console.log(`Failed to read sql drop file: "${sql_files.drop_tables}": ${error}`);
+      console.log(`Failed to read sql drop file: "${sql_file_names.drop_tables}": ${error}`);
       process.exit(1);
     }
 
@@ -51,7 +78,7 @@ class MaemDBStatic
       await pool.query(sql_source);
       console.log('maem database dropped successfully');
     } catch (error) {
-      console.log(`Failed to run sql drop: "${sql_files.drop_tables}": ${error}`);
+      console.log(`Failed to run sql drop: "${sql_file_names.drop_tables}": ${error}`);
       process.exit(1);
     }
 
@@ -62,9 +89,9 @@ class MaemDBStatic
   {
     var sql_source = "";
     try {
-      sql_source = await fs.readFile(sql_files.schema, 'utf-8');
+      sql_source = await fs.readFile(sql_file_names.schema, 'utf-8');
     } catch (error) {
-      console.log(`Failed to read sql schema: "${sql_files.schema}": ${error}`);
+      console.log(`Failed to read sql schema: "${sql_file_names.schema}": ${error}`);
       process.exit(1);
     }
 
@@ -72,7 +99,7 @@ class MaemDBStatic
       await pool.query(sql_source);
       console.log('maem database created successfully');
     } catch (error) {
-      console.log(`Failed to run sql schema: "${sql_files.schema}": ${error}`);
+      console.log(`Failed to run sql schema: "${sql_file_names.schema}": ${error}`);
       process.exit(1);
     }
 
@@ -84,9 +111,9 @@ class MaemDBStatic
   {
     var sql_source = "";
     try {
-      sql_source = await fs.readFile(sql_files.data, 'utf-8');
+      sql_source = await fs.readFile(sql_file_names.data, 'utf-8');
     } catch (error) {
-      console.log(`Failed to read sql schema: "${sql_files.schema}": ${error}`);
+      console.log(`Failed to read sql schema: "${sql_file_names.schema}": ${error}`);
       process.exit(1);
     }
 
@@ -94,7 +121,7 @@ class MaemDBStatic
       await pool.query(sql_source);
       console.log('maem database created successfully');
     } catch (error) {
-      console.log(`Failed to run sql schema: "${sql_files.schema}": ${error}`);
+      console.log(`Failed to run sql schema: "${sql_file_names.schema}": ${error}`);
       process.exit(1);
     }
 
